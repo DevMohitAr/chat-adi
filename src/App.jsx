@@ -8,79 +8,37 @@ import { CiChat1 } from "react-icons/ci";
 import { IoSettingsOutline } from "react-icons/io5";
 import { useMutation } from "react-query";
 function App() {
-  // const [search, setSearch] = React.useState("");
-var myHeaders = new Headers();
-myHeaders.append("authorization", "");
-myHeaders.append("X-API-Key", "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJsYW5ndGFpbC1hcGkiLCJzdWIiOiJjbHB3bjJ4M3AwMDAzbDcwODhzejdmZWZkIiwianRpIjoiY2xxMHZhajRxMDAwMWxiMDhpcW1nbmFveCIsImlhdCI6MTcwMjI5NjM0Nn0.go-RsEYVU4IRA-qbDxIyd7HzfL0SmmkLPvpeN8PclcyYuv0Tpf2rGtGN3Vh2K5kyBZ8iih-zp7XQSzcuyQPy_g");
-myHeaders.append("Content-Type", "application/json");
-
-var raw = JSON.stringify({
-  "stream": false,
-  "user_id": "user_123",
-  "seed": 123,
-  "doNotRecord": false,
-  "messages": [
+  const [search, setSearch] = React.useState("");
+  const [show,setShow] = React.useState(false)
+  const searchMutation = useMutation(
+    (search) =>
+      fetch(" https://stage-api.adinvestor.com/api/v1/chat_api/", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ message: search }),
+      }).then((res) => res.json()),
     {
-      "role": "user",
-      "content": "hello"
+      onSuccess: (data) => {
+        console.log(data);
+      },
+      onError: (error) => {
+        console.log(error);
+       
+      }
+    
     }
-  ]
-});
-
-var requestOptions = {
-  method: 'POST',
-  headers: myHeaders,
-  body: raw,
-  redirect: 'follow'
-}; 
-  const searchMutation = useMutation(() =>fetch("https://api.langtail.com/push-EiMrQa/langtail-playground/playground/staging",requestOptions).then((res)=>res.json()), {
-    onSuccess: (data) => {
-      console.log("getting", data);
-    },
-    onError: (error) => {
-      console.log(error);
-    },
-  });
+  );
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // setSearch(e.target.elements.search.value);
-    // searchMutation.mutate();
-    // setSearch("");
-    if (searchMutation.isLoading) return null;
-    searchMutation.mutate();
+
+     searchMutation.mutate(search);
+     e.target.reset()
+     setShow(!show)
   };
-  // React.useEffect(()=>{
-  //   const apiUrl =
-  //     "https://api.langtail.com/push-EiMrQa/langtail-playground/playground/staging";
-  //   const options = {
-  //     method: "POST",
-  //     headers: {
-  //       "X-API-Key":
-  //         "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJsYW5ndGFpbC1hcGkiLCJzdWIiOiJjbHB3bjJ4M3AwMDAzbDcwODhzejdmZWZkIiwianRpIjoiY2xxMHZhajRxMDAwMWxiMDhpcW1nbmFveCIsImlhdCI6MTcwMjI5NjM0Nn0.go-RsEYVU4IRA-qbDxIyd7HzfL0SmmkLPvpeN8PclcyYuv0Tpf2rGtGN3Vh2K5kyBZ8iih-zp7XQSzcuyQPy_g",
-  //       "content-type": "application/json",
-  //     },
-  //     body: JSON.stringify({
-  //       stream: false,
-  //       user_id: "user_123",
-  //       seed: 123,
-  //       doNotRecord: false,
-  //       messages: [{ role: "user", content: "Hello" }],
-  //     }),
-  //   };
-  //     const fetchData = async (url, options) => {
-  //       const resp = await fetch(url, options);
-  //       if (resp.status === 200) {
-  //         const data = await resp.json();
-  //         if (data.error) {
-  //           throw new Error("error");
-  //         }
-  //         return data;
-  //       }
-  //       throw new Error("ERROR");
-  //     };
-  //     fetchData(apiUrl,options)
-  // },[])
+  
 
   return (
     <section className="h-[90vh]">
@@ -149,10 +107,64 @@ var requestOptions = {
               </div>
             </div>
             <div className="bg-slate-50 p-4">
-              <h3>Chat details</h3>
+              <h3 className="text-slate-900 font-bold">Chat details:-</h3>
+              <p>
+                {show && (
+                  <>
+                    <div className="mb-2 mt-2">
+                      <p className="text-slate-900 font-bold mb-1">Query-</p>
+                      <p className="capitalize text-slate-900">{search}</p>
+                    </div>
+                  </>
+                )}
+              </p>
+              {searchMutation.isLoading ? (
+                "Fetching results...."
+              ) : (
+                <>
+                  <p>
+                    {" "}
+                    {searchMutation.data ? (
+                      <>
+                        <div className="mb-4">
+                          <p className="text-slate-900 font-bold">SQL-</p>
+                          <p>{searchMutation.data.sql}</p>
+                        </div>
+                      </>
+                    ) : (
+                      ""
+                    )}
+                  </p>
+
+                  {searchMutation.data ? (
+                    <>
+                      <p className="text-slate-900 font-bold mb-1">Data-</p>
+                      <div className="border-2 rounded-md border-slate-900 p-3">
+                        {searchMutation.data.data.map((item, index) => {
+                          return (
+                            <>
+                              <div className=" ">
+                                <p key={index} className="">
+                                  <div className="p-1 flex gap-2">
+                                    {item.map((item1, j) => (
+                                      <span key={j}>{item1}</span>
+                                    ))}
+                                  </div>
+                                </p>
+                              </div>
+                            </>
+                          );
+                        })}
+                      </div>
+                    </>
+                  ) : (
+                    ""
+                  )}
+                </>
+              )}
             </div>
             <div className="p-2 bg-slate-100">
-              <Form onSubmit={handleSubmit} />
+              <Form onSubmit={handleSubmit} setSearch={setSearch} />
             </div>
           </div>
         </div>

@@ -9,12 +9,9 @@ export const Form = ({search,setSearch,onSubmit}) => {
           type="search"
           name="search"
           id="search"
+          value={search}
           className="w-full p-3 border-2 border-gray-500 rounded-md"
-          onChange={(e)=>{
-            if(e.target.length===0){
-                setSearch("")
-            }
-          }}
+          onChange={(e)=>setSearch(e.target.value)}
       
         />
       </div>
