@@ -1,18 +1,30 @@
 import "./App.css";
-import React from "react";
+import React, { useRef } from "react";
 import { Form } from "./components/form";
 import { GoShare, GoSearch, GoPencil } from "react-icons/go";
 import { TbGridDots } from "react-icons/tb";
 import { PiChatCircleDots } from "react-icons/pi";
 import { CiChat1 } from "react-icons/ci";
 import { IoSettingsOutline } from "react-icons/io5";
-import { useMutation } from "react-query";
+import { useMutation, useQueryClient } from "react-query";
 function App() {
   const [search, setSearch] = React.useState("");
-  const [show,setShow] = React.useState(false)
+  const [show, setShow] = React.useState(false);
+  const [results, setResults] = React.useState([]);
+const resultsContainerRef = useRef(null);
+  const querClient = useQueryClient();
+    const scrollToLatestResult = () => {
+      if (resultsContainerRef.current) {
+        resultsContainerRef.current.scrollTop =
+          resultsContainerRef.current.scrollHeight;
+      }
+    };
+    React.useEffect(()=>{
+        scrollToLatestResult()
+    },[results])
   const searchMutation = useMutation(
     (search) =>
-      fetch(" https://stage-api.adinvestor.com/api/v1/chat_api/", {
+      fetch("https://stage-api.adinvestor.com/api/v1/chat_api/", {
         method: "POST",
         headers: {
           "content-type": "application/json",
@@ -21,25 +33,30 @@ function App() {
       }).then((res) => res.json()),
     {
       onSuccess: (data) => {
-        console.log(data);
+        setResults((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            sql: data.sql,
+            data: data?.data,
+            query: search,
+          },
+        ]);
       },
       onError: (error) => {
         console.log(error);
-       
-      }
-    
+      },
     }
   );
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-     searchMutation.mutate(search);
-     e.target.reset()
-     setShow(!show)
+    searchMutation.mutate(search);
+    e.target.reset();
+    setShow(!show);
   };
-  
-
+  console.log("results", results);
   return (
     <section className="h-[90vh]">
       <main className="grid grid-cols-[1.5fr_5fr] h-full  px-10 gap-10 mt-10 mb-10">
@@ -106,63 +123,32 @@ function App() {
                 </button>
               </div>
             </div>
-            <div className="bg-slate-50 p-4">
+            <main
+              ref={resultsContainerRef}
+              id="main"
+              className="bg-slate-50 p-4"
+            >
               <h3 className="text-slate-900 font-bold">Chat details:-</h3>
-              <p>
-                {show && (
-                  <>
-                    <div className="mb-2 mt-2">
-                      <p className="text-slate-900 font-bold mb-1">Query-</p>
-                      <p className="capitalize text-slate-900">{search}</p>
-                    </div>
-                  </>
-                )}
-              </p>
-              {searchMutation.isLoading ? (
-                "Fetching results...."
-              ) : (
-                <>
-                  <p>
-                    {" "}
-                    {searchMutation.data ? (
-                      <>
-                        <div className="mb-4">
-                          <p className="text-slate-900 font-bold">SQL-</p>
-                          <p>{searchMutation.data.sql}</p>
-                        </div>
-                      </>
-                    ) : (
-                      ""
-                    )}
-                  </p>
 
-                  {searchMutation.data ? (
-                    <>
-                      <p className="text-slate-900 font-bold mb-1">Data-</p>
-                      <div className="border-2 rounded-md border-slate-900 p-3">
-                        {searchMutation.data.data.map((item, index) => {
-                          return (
-                            <>
-                              <div className=" ">
-                                <p key={index} className="">
-                                  <div className="p-1 flex gap-2">
-                                    {item.map((item1, j) => (
-                                      <span key={j}>{item1}</span>
-                                    ))}
-                                  </div>
-                                </p>
-                              </div>
-                            </>
-                          );
-                        })}
-                      </div>
-                    </>
-                  ) : (
-                    ""
-                  )}
-                </>
-              )}
-            </div>
+              <div>
+                <div>
+                  {results?.map((item, i) => {
+                    const { sql, data, query } = item;
+                    return (
+                      <article className="mb-5" key={i}>
+                        <h2>Query--</h2>
+                        <p>{query}</p>
+                        <h2>Sql--</h2>
+                        <h3>{sql}</h3>
+                        <h2>Data--</h2>
+                        <p>{data}</p>
+                      </article>
+                    );
+                  })}
+                </div>
+                <div>{searchMutation.isLoading && <p>Fetching...</p>}</div>
+              </div>
+            </main>
             <div className="p-2 bg-slate-100">
               <Form onSubmit={handleSubmit} setSearch={setSearch} />
             </div>
