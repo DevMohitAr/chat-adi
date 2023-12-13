@@ -1,19 +1,20 @@
 import "./App.css";
 import React, { useRef } from "react";
 import { Form } from "./components/form";
-import { GoShare, GoSearch, GoPencil } from "react-icons/go";
+import { GoShare, GoPencil } from "react-icons/go";
 import { TbGridDots } from "react-icons/tb";
 import { PiChatCircleDots } from "react-icons/pi";
 import { CiChat1 } from "react-icons/ci";
 import { IoSettingsOutline } from "react-icons/io5";
-import { useMutation, useQueryClient } from "react-query";
+import { useMutation } from "react-query";
 import fetchWithError from "./components/FetchWithError";
+
 function App() {
   const [search, setSearch] = React.useState("");
   const [show, setShow] = React.useState(false);
   const [results, setResults] = React.useState([]);
   const resultsContainerRef = useRef(null);
-  const url = "https://stage-api.adinvestor.com/api/v1/chat_api/";
+  const url = "yoururl/api/v1/chat_api/";
   const scrollToLatestResult = () => {
     if (resultsContainerRef.current) {
       resultsContainerRef.current.scrollTop =
@@ -58,7 +59,7 @@ function App() {
     e.target.reset();
     setShow(!show);
   };
-  console.log("results", results);
+
   return (
     <section className="h-[90vh]">
       <main className="grid grid-cols-[1.5fr_5fr] h-full  px-10 gap-10 mt-10 mb-10">
@@ -106,7 +107,7 @@ function App() {
           </div>
           <div className="grid grid-rows-[auto_1fr_auto] bg-slate-100 rounded-md">
             <div className="flex justify-between bg-slate-200 p-4 ">
-              <div >
+              <div>
                 <h2>New Conversation</h2>
                 Suggested:
                 <small className="text-cyan-500 font-medium">
@@ -168,8 +169,12 @@ function App() {
                     );
                   })}
                 </div>
-                <div >{searchMutation.isLoading && <p >Fetching...</p>}</div>
-                <div>{searchMutation.isError &&<p>{searchMutation.error.message}</p>}</div>
+                <div>{searchMutation.isLoading && <p>Fetching...</p>}</div>
+                <div>
+                  {searchMutation.isError && (
+                    <p>{searchMutation.error.message}</p>
+                  )}
+                </div>
               </div>
             </main>
             <div className="p-2 bg-slate-200">
